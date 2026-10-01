@@ -39,6 +39,17 @@
     "cli",
     "alibaba"
   ],
+  "author": {
+    "name": "3MH TECHNOLOGIES",
+    "url": "https://3mh.pages.dev/",
+    "email": ""
+  },
+  "contributors": [
+    {
+      "name": "3MH TECHNOLOGIES",
+      "url": "https://t.me/j49_c"
+    }
+  ],
   "engines": {
     "node": ">=18"
   },
