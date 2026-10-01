@@ -1,0 +1,46 @@
+{
+  "name": "qwen-api-bridge",
+  "version": "1.0.0",
+  "description": "Tool bridge for chat.qwen.ai internal APIs: session recorder + one typed tool per endpoint",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "qwen": "./src/cli.js"
+  },
+  "scripts": {
+    "record": "node src/cli.js record",
+    "models": "node src/cli.js models",
+    "configs": "node src/cli.js configs",
+    "chat": "node src/cli.js chat",
+    "tools": "node src/cli.js tools",
+    "routes": "node src/cli.js routes",
+    "auth-status": "node src/cli.js auth-status",
+    "test": "node selftest.mjs",
+    "test:py": "python selftest_qwen_session.py"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/3MH-Technologies/qwen-api-bridge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/3MH-Technologies/qwen-api-bridge/issues"
+  },
+  "homepage": "https://github.com/3MH-Technologies/qwen-api-bridge#readme",
+  "keywords": [
+    "qwen",
+    "chat-qwen-ai",
+    "api-bridge",
+    "sse",
+    "cli",
+    "alibaba"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

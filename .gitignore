@@ -1,0 +1,14 @@
+node_modules/
+.env
+.env.*
+*.local.json
+captures/
+*.har
+sessions/
+
+# --- credentials: never commit these ---
+.session.json          # cookie jar + access token (src/session.js)
+j49_c.txt              # session file written by qwen_session.py
+*.session.json
+__pycache__/
+*.pyc
