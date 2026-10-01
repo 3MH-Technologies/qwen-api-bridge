@@ -37,10 +37,8 @@ export function buildTool(route) {
     method: route.method,
     path: GROUPS[route.group].prefix + route.path,
     url: (args = {}) => {
-      const { params, query, ...rest } = args || {};
-      const flat = { ...rest, ...(params || {}) };
       try {
-        return routeUrl(route, { params: flat, query: query || {} });
+        return routeUrl(route, args || {});
       } catch {
         // No params supplied: show the template with readable placeholders.
         const g = GROUPS[route.group];

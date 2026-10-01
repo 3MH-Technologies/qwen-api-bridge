@@ -74,7 +74,7 @@ export class QwenClient {
   }
 
   /** Low level request. Returns { status, headers, data }. */
-  async raw(url, { method = "GET", body, headers = {}, stream = false, signal } = {}) {
+  async raw(url, { method = "GET", body, headers = {}, stream = false, signal } = {}, attempt = 0) {
     const finalHeaders = baseHeaders(headers);
     const cookie = this.session.header();
     if (cookie) finalHeaders.cookie = cookie;
@@ -96,11 +96,10 @@ export class QwenClient {
 
     const status = effectiveStatus(res);
 
-    if (status === 401 && this.retries > 0) {
-      this.retries -= 1;
+    if (status === 401 && attempt < this.retries) {
       this.onRetry?.(url);
       await this.#refresh();
-      return this.raw(url, { method, body, headers, stream, signal });
+      return this.raw(url, { method, body, headers, stream, signal }, attempt + 1);
     }
 
     const ctype = (res.headers.get("content-type") || "").toLowerCase();

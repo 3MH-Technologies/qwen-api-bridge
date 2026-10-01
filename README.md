@@ -34,7 +34,21 @@ src/
   inpage.js          نقل يعمل داخل الصفحة (للبيئات التي تحجب egress من Node)
   recorder.js        أداة التسجيل → HAR
   cli.js             واجهة سطر الأوامر
+test/
+  *.test.js          71 اختباراً آنياً (node:test) — مسارات، جلسة، SSE، عميل، CLI
 ```
+
+## التطوير
+
+```bash
+npm ci              # التبعيات (dev فقط: eslint)
+npm test            # حزمة الاختبارات — node --test
+npm run lint        # ESLint
+npm run test:all    # JS + الاختبار القديم + بايثون
+```
+
+يركّز CI (`.github/workflows/ci.yml`) على Node 18/20/22 مع `lint` + `test` +
+selftest بايثون في كل push وpull request.
 
 ### حالة الطلب
 
@@ -62,11 +76,13 @@ try {
 ## الاستخدام
 
 ```bash
+qwen --help        # كل الأوامر
 npm run routes     # جدول المسارات مع حالة التأكيد
 npm run tools      # قائمة الأدوات الـ 84
 node src/cli.js models    # كتالوج النماذج
 node src/cli.js configs   # رايات الميزات والأدوات
 node src/cli.js tts       # الأصوات واللغات
+QWEN_DEBUG=1 node src/cli.js ...  # تتبع كامل عند الخطأ
 ```
 
 ### الأداة

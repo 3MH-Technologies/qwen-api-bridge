@@ -5,8 +5,9 @@
  * needs a cookie jar. Everything stays on disk in ./.session.json and is
  * gitignored.
  */
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, chmodSync } from "node:fs";
 import { resolve } from "node:path";
+import { randomUUID } from "node:crypto";
 
 const SESSION_FILE = resolve(process.cwd(), ".session.json");
 
@@ -19,7 +20,7 @@ export function baseHeaders(extra = {}) {
     referer: "https://chat.qwen.ai/",
     "user-agent":
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-    "x-request-id": crypto.randomUUID(),
+    "x-request-id": randomUUID(),
     ...extra,
   };
 }
@@ -51,8 +52,15 @@ export class Session {
   save() {
     writeFileSync(
       SESSION_FILE,
-      JSON.stringify({ cookies: this.cookies, accessToken: this.accessToken }, null, 2)
+      JSON.stringify({ cookies: this.cookies, accessToken: this.accessToken }, null, 2),
+      // Owner-only: the file holds live credentials.
+      { mode: 0o600 }
     );
+    try {
+      chmodSync(SESSION_FILE, 0o600);
+    } catch {
+      /* Windows or unsupported fs: mode above already applied on create */
+    }
     return SESSION_FILE;
   }
 

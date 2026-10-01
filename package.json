@@ -3,7 +3,18 @@
   "version": "1.0.0",
   "description": "Tool bridge for chat.qwen.ai internal APIs: session recorder + one typed tool per endpoint",
   "type": "module",
-  "main": "src/index.js",
+  "main": "./src/client.js",
+  "exports": {
+    ".": "./src/client.js",
+    "./client": "./src/client.js",
+    "./routes": "./src/routes.js",
+    "./session": "./src/session.js",
+    "./sse": "./src/sse.js",
+    "./chat": "./src/chat.js",
+    "./recorder": "./src/recorder.js",
+    "./inpage": "./src/inpage.js",
+    "./tools": "./src/tools/build.js"
+  },
   "bin": {
     "qwen": "./src/cli.js"
   },
@@ -15,8 +26,13 @@
     "tools": "node src/cli.js tools",
     "routes": "node src/cli.js routes",
     "auth-status": "node src/cli.js auth-status",
-    "test": "node selftest.mjs",
-    "test:py": "python selftest_qwen_session.py"
+    "test": "node --test",
+    "test:js": "node --test",
+    "test:legacy": "node selftest.mjs",
+    "test:py": "python selftest_qwen_session.py",
+    "test:all": "npm run test:js && npm run test:legacy && npm run test:py",
+    "lint": "eslint .",
+    "prepublishOnly": "npm run test:all && npm run lint"
   },
   "files": [
     "src",
@@ -53,5 +69,10 @@
   "engines": {
     "node": ">=18"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.11.0",
+    "globals": "^17.13.0"
+  }
 }

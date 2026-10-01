@@ -24,6 +24,7 @@ import { Recorder } from "./recorder.js";
 import { buildPayload, foldStream } from "./chat.js";
 
 const [, , cmd, ...rest] = process.argv;
+const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const tools = buildAllTools();
 
 function out(obj) {
@@ -214,8 +215,20 @@ const commands = {
 };
 
 const fn = commands[cmd];
+
+// `qwen --help` / `qwen help` / `qwen --version` / `qwen -v`
+if (cmd === "--help" || cmd === "-h" || cmd === "help") {
+  console.log(usage());
+  process.exit(0);
+}
+if (cmd === "--version" || cmd === "-v") {
+  console.log(pkg.version);
+  process.exit(0);
+}
+
 if (!fn) {
-  console.log(fs_usage());
+  console.error(cmd ? `Unknown command "${cmd}".\n` : "");
+  console.log(usage());
   process.exit(cmd ? 1 : 0);
 }
 
@@ -225,23 +238,42 @@ try {
   console.error(`\nError: ${e.message}`);
   if (e.code) console.error(`code: ${e.code}`);
   if (e.details) console.error(`details: ${e.details}`);
+  if (process.env.QWEN_DEBUG) console.error(e.stack);
   process.exit(1);
 }
 
-function fs_usage() {
-  return `qwen CLI
+function usage() {
+  return `${pkg.name} ${pkg.version}
 
-  auth-import <cookie>   load session cookies
-  auth-status            am I signed in?
-  tools                  list every tool
-  tools-json             tool manifest as JSON
-  models                 model catalogue
-  configs                feature flags
-  settings               remote settings
-  tts                    voices and languages
-  chats                  conversation list
-  chat "<prompt>"        send and print reply
-  call <tool> [json]     invoke any tool
-  record <file.har>      summarise a recording
-  routes                 route table with verification state`;
+Usage: qwen <command> [args]
+
+Session
+  auth-import <cookie|file>   load session cookies from the browser
+  auth-status                 am I signed in?
+
+Catalogue
+  models                      model catalogue
+  configs                     feature flags + available tools
+  settings                    remote settings
+  tts                         voices and languages
+  chats                       conversation list
+
+Chat
+  chat "<prompt>" [--model=x] [--thinking] [--search]
+                              send a message and print the reply
+
+Tools
+  tools                       list every tool
+  tools-json                  tool manifest as JSON
+  call <tool> [json]          invoke any tool by name
+  routes                      route table with verification state
+
+Capture
+  record <file.har>           summarise a recording
+
+General
+  -h, --help                  show this help
+  -v, --version               print the version
+
+Set QWEN_DEBUG=1 to print full stack traces on errors.`;
 }

@@ -36,7 +36,6 @@ console.log("HAR entries:", rec.toHAR().log.entries.length);
 
 // --- new: effective status, challenge detection, guarded routes -------------
 const C = await import("./src/client.js");
-const R = await import("./src/routes.js");
 
 const fakeRes = (status, hdr) => ({ status, headers: { get: (k) => (k === "x-actual-status-code" ? hdr : null) } });
 console.log("effective 200 + 401 header ->", C.effectiveStatus(fakeRes(200, "401")), "(expect 401)");

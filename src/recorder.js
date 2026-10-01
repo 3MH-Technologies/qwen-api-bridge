@@ -42,14 +42,14 @@ export class Recorder {
         url: req.url,
         method: req.method,
         resourceType: req.resourceType,
-        status: req.statusCode ?? null,
+        status: req.statusCode ?? req.status ?? null,
         startedAt: req.timestampMs ?? null,
         durationMs: req.durationMs ?? null,
         requestHeaders: b.requestHeaders ?? [],
         responseHeaders: b.responseHeaders ?? [],
         requestBody: b.requestBody ?? null,
         responseBody: b.responseBody ?? null,
-        source: "mcp",
+        source: req.source ?? "mcp",
       });
       if (ok) kept += 1;
     }
@@ -61,10 +61,18 @@ export class Recorder {
     const byEndpoint = new Map();
     for (const e of this.entries) {
       const key = `${e.method} ${normalise(e.url)}`;
-      const cur = byEndpoint.get(key) ?? { count: 0, statuses: new Set(), types: new Set() };
+      const cur = byEndpoint.get(key) ?? {
+        count: 0,
+        statuses: new Set(),
+        types: new Set(),
+        hasRequestBody: false,
+        hasResponseBody: false,
+      };
       cur.count += 1;
       if (e.status) cur.statuses.add(e.status);
       cur.types.add(e.resourceType ?? "unknown");
+      if (e.requestBody) cur.hasRequestBody = true;
+      if (e.responseBody) cur.hasResponseBody = true;
       byEndpoint.set(key, cur);
     }
     return [...byEndpoint.entries()]
@@ -73,8 +81,8 @@ export class Recorder {
         calls: v.count,
         statuses: [...v.statuses],
         types: [...v.types],
-        hasRequestBody: false,
-        hasResponseBody: false,
+        hasRequestBody: v.hasRequestBody,
+        hasResponseBody: v.hasResponseBody,
       }))
       .sort((a, b) => b.calls - a.calls || a.endpoint.localeCompare(b.endpoint));
   }
@@ -135,8 +143,12 @@ export class Recorder {
 function normalise(url) {
   try {
     const u = new URL(url);
-    const idLike = /\d{6,}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
-    return u.origin + u.pathname.replace(idLike, "{id}") + (u.search || "");
+    // UUIDs first so `12345678-1234-...` collapses as one token, then any
+    // long digit run. The query string is dropped: page=1 vs page=2 is the
+    // same endpoint, and that is what the summary groups by.
+    const idLike =
+      /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|\d{6,}/gi;
+    return u.origin + u.pathname.replace(idLike, "{id}");
   } catch {
     return url;
   }
@@ -209,7 +221,11 @@ export async function recordViaCDP({ port = 9222, idleMs = 4000, maxMs = 120000,
       rec.add({
         ...b,
         startedAt: b.wallTime ? b.wallTime * 1000 : null,
-        durationMs: Math.round(params.encodedDataLength ?? 0) ? 0 : 0,
+        // CDP timestamps are monotonic seconds; derive the true duration.
+        durationMs:
+          typeof params.timestamp === "number" && typeof b.timestampMs === "number"
+            ? Math.max(0, Math.round((params.timestamp - b.timestampMs) * 1000))
+            : 0,
         source: "cdp",
       });
       bodies.delete(params.requestId);
@@ -236,7 +252,9 @@ export async function recordViaCDP({ port = 9222, idleMs = 4000, maxMs = 120000,
   clearInterval(tick);
   try {
     ws.close();
-  } catch {}
+  } catch {
+    /* already closed by the idle tick */
+  }
   return rec;
 }
 

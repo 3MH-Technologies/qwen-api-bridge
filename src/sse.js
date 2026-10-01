@@ -71,6 +71,10 @@ export async function* readSSE(response, { signal } = {}) {
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   const parser = new SSEParser();
+  // An abort (caller cancellation or our stream timeout) releases the socket
+  // immediately instead of waiting for the next chunk that will never come.
+  const onAbort = () => reader.cancel().catch(() => {});
+  signal?.addEventListener?.("abort", onAbort, { once: true });
   try {
     while (true) {
       const { done, value } = await reader.read();
@@ -85,6 +89,9 @@ export async function* readSSE(response, { signal } = {}) {
       yield ev;
     }
   } finally {
-    if (signal?.aborted) reader.cancel().catch(() => {});
+    signal?.removeEventListener?.("abort", onAbort);
+    // Safe on a finished stream (no-op) and required when the consumer
+    // breaks out of the loop early.
+    reader.cancel().catch(() => {});
   }
 }

@@ -23,9 +23,9 @@ export function buildPayload({
   messageId = randomUUID(),
   files = [],
   mode = DEFAULTS.mode,
-  incrementalOutput = DEFAULTS.incrementalOutput,
+  incrementalOutput = DEFAULTS.incremental_output,
   thinking = DEFAULTS.thinking,
-  autoSearch = DEFAULTS.autoSearch,
+  autoSearch = DEFAULTS.auto_search,
   useWebSearch = false,
 } = {}) {
   if (!prompt) throw new Error("prompt is required");
